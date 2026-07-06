@@ -515,6 +515,55 @@ button {
   margin-right: auto;
 }
 
+.file-viewer-modal {
+  width: min(900px, 92vw);
+  height: min(720px, 86vh);
+}
+
+.file-viewer-title {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.file-viewer-title strong,
+.file-viewer-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-viewer-title span {
+  color: #8a8a8a;
+  font-size: 11px;
+}
+
+.file-viewer-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+.file-viewer-content {
+  min-height: 100%;
+  padding: 12px 14px;
+  white-space: pre;
+  color: #d4d4d4;
+  background: #111;
+  font: 12px Consolas, 'Cascadia Mono', monospace;
+}
+
+.file-viewer-error {
+  margin: 12px 14px;
+  color: #e0a0a0;
+  background: #3a1f1f;
+  border: 1px solid #6a3232;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
 .empty-hint {
   color: #777;
   font-size: 12px;
@@ -522,4 +571,87 @@ button {
 
 .empty-hint.pad {
   padding: 14px;
+}
+
+/* --- Chat toolbar (mode toggle / model picker / session) --- */
+.chat-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #2d2d2d;
+  background: #181818;
+  flex-shrink: 0;
+}
+
+.mode-toggle {
+  display: flex;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.mode-btn {
+  background: #1e1e1e;
+  color: #bbb;
+  border: none;
+  padding: 4px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mode-btn.active {
+  background: #0e639c;
+  color: #fff;
+}
+
+.mode-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.model-select {
+  background: #1e1e1e;
+  color: #ddd;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  max-width: 320px;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.session-chip {
+  font-size: 11px;
+  color: #8a8a8a;
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-family: Consolas, monospace;
+}
+
+.btn.small {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.status-chip {
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1px 8px;
+  font-size: 11px;
+  color: #9a9a9a;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message.assistant.live .message-content {
+  border-left: 2px solid #0e639c;
 }

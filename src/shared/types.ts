@@ -11,6 +11,8 @@ export interface Session {
   projectId: number
   title: string
   createdAt: string
+  /** opencode CLI session id (ses_...) used with `opencode run -s` to continue the conversation. */
+  opencodeSessionId: string | null
 }
 
 export type MessageRole = 'user' | 'assistant' | 'system' | 'tool'
@@ -23,13 +25,23 @@ export interface ChatMessage {
   createdAt: string
 }
 
-export type SandboxMode = 'read-only' | 'workspace-write' | 'full-access'
+/**
+ * How opencode handles permission requests.
+ * - 'ask': opencode's default behavior (its own permission config decides / asks).
+ * - 'auto': passes `--auto` which auto-approves anything not explicitly denied (dangerous).
+ * The opencode CLI has no read-only/workspace-write sandbox flags, so we do not pretend to.
+ */
+export type ApprovalPolicy = 'ask' | 'auto'
+
+/** Primary opencode agent used for a run. Passed as `--agent build` / `--agent plan`. */
+export type AgentMode = 'build' | 'plan'
 
 export interface Settings {
   cliPath: string
   model: string
   provider: string
-  sandboxMode: SandboxMode
+  approvalPolicy: ApprovalPolicy
+  agentMode: AgentMode
   defaultFlags: string
 }
 
@@ -44,8 +56,18 @@ export interface RunStatusEvent {
 
 export interface RunOutputEvent {
   projectId: number
-  stream: 'stdout' | 'stderr'
+  /**
+   * 'stdout' / 'stderr': raw process output rendered in the terminal.
+   * 'assistant': extracted assistant text (from --format json text events) for the chat view.
+   */
+  stream: 'stdout' | 'stderr' | 'assistant'
   data: string
+}
+
+export interface RunStartOptions {
+  projectId: number
+  prompt: string
+  mode: AgentMode
 }
 
 export interface FileNode {
@@ -71,6 +93,7 @@ export const DEFAULT_SETTINGS: Settings = {
   cliPath: 'opencode',
   model: '',
   provider: '',
-  sandboxMode: 'workspace-write',
+  approvalPolicy: 'ask',
+  agentMode: 'build',
   defaultFlags: ''
 }

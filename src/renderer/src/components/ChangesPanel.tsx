@@ -14,7 +14,7 @@ export function ChangesPanel({ project, changes }: Props): JSX.Element {
   const openDiff = async (change: FileChange): Promise<void> => {
     if (!project) return
     setSelected(change)
-    setDiff(await window.api.getDiff(project.path, change.path))
+    setDiff(await window.api.getDiff(project.id, change.path))
   }
 
   if (!project) return <div className="empty-hint pad">No project selected.</div>

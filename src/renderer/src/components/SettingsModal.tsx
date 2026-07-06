@@ -1,22 +1,26 @@
 import { useEffect, useState } from 'react'
-import { DEFAULT_SETTINGS, type SandboxMode, type Settings } from '../../../shared/types'
+import { DEFAULT_SETTINGS, type ApprovalPolicy, type Settings } from '../../../shared/types'
 
 interface Props {
+  models: string[]
   onClose: () => void
 }
 
-const SANDBOX_MODES: { value: SandboxMode; label: string; hint: string; danger?: boolean }[] = [
-  { value: 'read-only', label: 'Read-only', hint: 'Agent may read files but not modify anything.' },
-  { value: 'workspace-write', label: 'Workspace write', hint: 'Agent may modify files inside the project folder.' },
+const APPROVAL_MODES: { value: ApprovalPolicy; label: string; hint: string; danger?: boolean }[] = [
   {
-    value: 'full-access',
-    label: 'Full access',
-    hint: 'Agent may run arbitrary commands and touch files outside the workspace. Use with care.',
+    value: 'ask',
+    label: 'Ask (opencode default)',
+    hint: "opencode's own permission config decides what needs approval. No extra flag is passed."
+  },
+  {
+    value: 'auto',
+    label: 'Auto-approve (--auto)',
+    hint: 'Passes --auto: opencode auto-approves every permission not explicitly denied. Dangerous.',
     danger: true
   }
 ]
 
-export function SettingsModal({ onClose }: Props): JSX.Element {
+export function SettingsModal({ models, onClose }: Props): JSX.Element {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   const [saved, setSaved] = useState(false)
 
@@ -34,7 +38,11 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
     setSaved(true)
   }
 
-  const sandbox = SANDBOX_MODES.find((m) => m.value === settings.sandboxMode)
+  const approval = APPROVAL_MODES.find((m) => m.value === settings.approvalPolicy)
+  const providerFilter = settings.provider.trim().toLowerCase()
+  const filteredModels = providerFilter
+    ? models.filter((m) => m.toLowerCase().startsWith(providerFilter + '/'))
+    : models
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -48,49 +56,63 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
         <div className="modal-body">
           <label className="field">
             <span>OpenCode CLI path</span>
-            <input value={settings.cliPath} onChange={(e) => update({ cliPath: e.target.value })} placeholder="opencode" />
-          </label>
-          <label className="field">
-            <span>Model</span>
             <input
-              value={settings.model}
-              onChange={(e) => update({ model: e.target.value })}
-              placeholder="e.g. anthropic/claude-sonnet-5 (empty = CLI default)"
+              value={settings.cliPath}
+              onChange={(e) => update({ cliPath: e.target.value })}
+              placeholder="opencode (or full path to opencode.exe)"
             />
           </label>
           <label className="field">
-            <span>Provider</span>
+            <span>Provider filter</span>
             <input
               value={settings.provider}
               onChange={(e) => update({ provider: e.target.value })}
-              placeholder="e.g. anthropic (empty = CLI default)"
+              placeholder="e.g. anthropic — filters the model list below"
             />
           </label>
           <label className="field">
-            <span>Sandbox mode</span>
+            <span>Model (passed as --model)</span>
+            <input
+              value={settings.model}
+              onChange={(e) => update({ model: e.target.value })}
+              list="model-options"
+              placeholder="provider/model (empty = CLI default)"
+            />
+            <datalist id="model-options">
+              {filteredModels.map((m) => (
+                <option key={m} value={m} />
+              ))}
+            </datalist>
+          </label>
+          <label className="field">
+            <span>Permission approval</span>
             <select
-              value={settings.sandboxMode}
-              onChange={(e) => update({ sandboxMode: e.target.value as SandboxMode })}
+              value={settings.approvalPolicy}
+              onChange={(e) => update({ approvalPolicy: e.target.value as ApprovalPolicy })}
             >
-              {SANDBOX_MODES.map((m) => (
+              {APPROVAL_MODES.map((m) => (
                 <option key={m.value} value={m.value}>
                   {m.label}
                 </option>
               ))}
             </select>
           </label>
-          {sandbox && (
-            <div className={sandbox.danger ? 'sandbox-hint danger' : 'sandbox-hint'}>
-              {sandbox.danger ? '⚠ ' : ''}
-              {sandbox.hint}
+          {approval && (
+            <div className={approval.danger ? 'sandbox-hint danger' : 'sandbox-hint'}>
+              {approval.danger ? '⚠ ' : ''}
+              {approval.hint}
             </div>
           )}
+          <div className="settings-note">
+            The opencode CLI has no read-only/workspace-write sandbox flags; file and command permissions are governed
+            by opencode's own permission system (see <code>opencode.json</code> permissions config).
+          </div>
           <label className="field">
             <span>Default flags</span>
             <input
               value={settings.defaultFlags}
               onChange={(e) => update({ defaultFlags: e.target.value })}
-              placeholder="extra CLI flags, e.g. --print-logs"
+              placeholder="extra CLI flags appended to every run, e.g. --print-logs"
             />
           </label>
           <div className="settings-note">

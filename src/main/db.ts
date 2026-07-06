@@ -35,6 +35,11 @@ export function initDb(): void {
       value TEXT NOT NULL
     );
   `)
+  // Migration: opencode CLI session id used to continue conversations with `opencode run -s`.
+  const cols = db.prepare(`PRAGMA table_info(sessions)`).all() as { name: string }[]
+  if (!cols.some((c) => c.name === 'opencode_session_id')) {
+    db.exec(`ALTER TABLE sessions ADD COLUMN opencode_session_id TEXT`)
+  }
 }
 
 function rowToProject(r: any): Project {
@@ -58,20 +63,42 @@ export function removeProject(id: number): void {
   db.prepare('DELETE FROM projects WHERE id = ?').run(id)
 }
 
+export function getProjectById(id: number): Project | null {
+  const row: any = db.prepare('SELECT * FROM projects WHERE id = ?').get(id)
+  return row ? rowToProject(row) : null
+}
+
+function rowToSession(row: any): Session {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    title: row.title,
+    createdAt: row.created_at,
+    opencodeSessionId: row.opencode_session_id ?? null
+  }
+}
+
 export function getOrCreateSession(projectId: number): Session {
   const row: any = db
-    .prepare('SELECT * FROM sessions WHERE project_id = ? ORDER BY created_at DESC LIMIT 1')
+    .prepare('SELECT * FROM sessions WHERE project_id = ? ORDER BY id DESC LIMIT 1')
     .get(projectId)
-  if (row) {
-    return { id: row.id, projectId: row.project_id, title: row.title, createdAt: row.created_at }
-  }
+  if (row) return rowToSession(row)
   const info = db.prepare('INSERT INTO sessions (project_id) VALUES (?)').run(projectId)
   return getSessionById(Number(info.lastInsertRowid))
 }
 
-function getSessionById(id: number): Session {
+export function createSession(projectId: number): Session {
+  const info = db.prepare('INSERT INTO sessions (project_id) VALUES (?)').run(projectId)
+  return getSessionById(Number(info.lastInsertRowid))
+}
+
+export function getSessionById(id: number): Session {
   const row: any = db.prepare('SELECT * FROM sessions WHERE id = ?').get(id)
-  return { id: row.id, projectId: row.project_id, title: row.title, createdAt: row.created_at }
+  return rowToSession(row)
+}
+
+export function setSessionOpencodeId(sessionId: number, opencodeSessionId: string): void {
+  db.prepare('UPDATE sessions SET opencode_session_id = ? WHERE id = ?').run(opencodeSessionId, sessionId)
 }
 
 export function addMessage(sessionId: number, role: MessageRole, content: string): ChatMessage {

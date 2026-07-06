@@ -7,17 +7,26 @@ interface Props {
   onAddProject: () => void
   onOpenProject: (p: Project) => void
   onRemoveProject: (id: number) => void
+  onOpenFile: (path: string) => void
   onOpenSettings: () => void
 }
 
-function TreeNode({ node, depth }: { node: FileNode; depth: number }): JSX.Element {
+function TreeNode({
+  node,
+  depth,
+  onOpenFile
+}: {
+  node: FileNode
+  depth: number
+  onOpenFile: (path: string) => void
+}): JSX.Element {
   const [open, setOpen] = useState(depth === 0)
   return (
     <div>
       <div
         className="tree-row"
         style={{ paddingLeft: 8 + depth * 14 }}
-        onClick={() => node.isDirectory && setOpen(!open)}
+        onClick={() => (node.isDirectory ? setOpen(!open) : onOpenFile(node.path))}
         title={node.path}
       >
         <span className="tree-icon">{node.isDirectory ? (open ? '📂' : '📁') : '📄'}</span>
@@ -25,7 +34,9 @@ function TreeNode({ node, depth }: { node: FileNode; depth: number }): JSX.Eleme
       </div>
       {node.isDirectory &&
         open &&
-        node.children?.map((c) => <TreeNode key={c.path} node={c} depth={depth + 1} />)}
+        node.children?.map((c) => (
+          <TreeNode key={c.path} node={c} depth={depth + 1} onOpenFile={onOpenFile} />
+        ))}
     </div>
   )
 }
@@ -39,7 +50,7 @@ export function Sidebar(props: Props): JSX.Element {
       setTree([])
       return
     }
-    window.api.getFileTree(activeProject.path).then(setTree)
+    window.api.getFileTree(activeProject.id).then(setTree)
   }, [activeProject])
 
   return (
@@ -87,7 +98,7 @@ export function Sidebar(props: Props): JSX.Element {
         <div className="section-title">Files</div>
         <div className="file-tree">
           {tree.map((n) => (
-            <TreeNode key={n.path} node={n} depth={0} />
+            <TreeNode key={n.path} node={n} depth={0} onOpenFile={props.onOpenFile} />
           ))}
         </div>
       </div>
