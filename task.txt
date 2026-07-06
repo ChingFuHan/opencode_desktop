@@ -1,0 +1,115 @@
+請先完整理解本專案目標後再開始執行。
+
+我要建立一個 Windows 優先的 Electron + React + TypeScript 桌面 App，定位不是最小 MVP，而是仿 Claude Desktop 工作模式的 OpenCode Desktop，作為 OpenCode CLI 的圖形化桌面工作台。
+
+核心目標：
+建立一個可以管理多個本機專案、保留對話 session、呼叫 OpenCode CLI、即時顯示 agent 執行狀態、terminal log、檔案變更與設定的桌面 App。
+
+產品定位：
+
+* 不是單純把 opencode CLI 包一層按鈕
+* 不是 demo toy app
+* 不是極簡 MVP
+* 是 Claude Desktop-style 的本機 Agent Workspace
+* Windows 優先，不需要先做跨平台
+
+技術棧：
+
+* Electron
+* React
+* TypeScript
+* Node child_process
+* xterm.js
+* SQLite
+* Monaco Editor
+* Vite 或等效現代前端建置工具
+
+主要功能需求：
+
+1. Project Manager
+
+* 可以選擇本機專案資料夾
+* 可以保存最近開啟的專案
+* 每個專案有獨立 session
+* 左側顯示專案列表
+* 左側顯示目前專案的檔案樹
+
+2. Chat Workspace
+
+* 右側主要區域是 chat UI
+* 可以輸入 prompt
+* 可以送出 prompt 給 opencode CLI
+* 可以顯示 user / assistant / system / tool log 類型訊息
+* 每個專案的對話紀錄要可以保存與重新載入
+
+3. OpenCode CLI Runtime
+
+* 使用 Node child_process 呼叫本機 opencode CLI
+* 支援設定 working directory 為目前專案資料夾
+* 即時串流 stdout / stderr
+* 可以停止目前正在執行的 agent process
+* 顯示 running / stopped / error / completed 狀態
+* 避免同一個 project 同時啟動多個衝突中的 agent process，除非後續明確支援 multi-session
+
+4. Terminal / Log Panel
+
+* 下方顯示 terminal log
+* 使用 xterm.js 或等效 terminal output 元件
+* stdout / stderr 要能即時顯示
+* 保留最近一次或目前 session 的執行紀錄
+
+5. Diff / File Review
+
+* 若偵測到檔案變更，提供基本檔案變更列表
+* 使用 Monaco Editor 或簡單 diff viewer 顯示修改內容
+* 不要求第一版就做到完整 git client，但需要留下清楚架構
+
+6. Settings
+
+* 可設定 OpenCode CLI path
+* 可設定 model
+* 可設定 provider
+* 可設定 sandbox mode
+* 可設定 default flags
+* API key 不要優先明文存入 app；若需要，優先使用環境變數或既有 opencode 設定
+* 設定要可保存與重新載入
+
+7. Permission / Safety Layer
+
+* 支援 sandbox mode 設定
+* 支援 full-access / workspace-write / read-only 這類概念的 UI 表示
+* 危險模式要有明確提示
+* 不要自動重開機、關機、刪除大型資料、格式化磁碟或做不可逆系統操作
+* 涉及不可逆或高風險操作時，必須停下並讓使用者確認
+
+8. Windows 優先
+
+* 優先支援 Windows 10 / Windows 11
+* 指令執行以 PowerShell / cmd 相容為主
+* 路徑處理要支援 Windows 路徑，例如 C:\Users\User\Documents\project
+* 不需要先處理 macOS / Linux 打包
+
+執行要求：
+
+1. 先檢查目前專案目錄狀態
+2. 先提出建議架構與檔案結構
+3. 若目錄是空的，建立完整專案骨架
+4. 若已有專案，避免破壞既有內容，先判斷再修改
+5. 實作時以可維護、可擴充為優先
+6. 每完成一個階段，執行基本檢查或 build/test
+7. 若遇到套件版本或相依性問題，優先採用穩定解法，不要硬湊
+8. 最終要留下清楚 README，包含安裝、啟動、開發、打包與 OpenCode CLI 設定方式
+
+第一階段交付目標：
+
+* Electron + React + TypeScript 專案可啟動
+* 主視窗有 Claude Desktop-style layout
+* 可以選擇專案資料夾
+* 可以輸入 prompt
+* 可以呼叫 opencode CLI
+* 可以即時顯示 stdout / stderr
+* 可以停止執行中的 process
+* 可以保存 project / session / settings 基本資料
+* 有基本 README
+
+請直接開始執行，不要只停在規劃。
